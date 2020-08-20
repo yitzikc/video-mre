@@ -24,4 +24,4 @@ const server = new WebHost({
 });
 
 // Handle new application sessions
-server.adapter.onConnection(context => new App(context, server.baseUrl));
+server.adapter.onConnection((context, params) => new App(context, params, server.baseUrl));
