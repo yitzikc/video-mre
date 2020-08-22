@@ -40,6 +40,7 @@
     "babel-jest": "^26.3.0",
     "eslint": "^7.6.0",
     "jest": "^26.4.2",
+    "jest-date-mock": "^1.0.8",
     "minimist": "^1.2.5",
     "nodemon": "^2.0.4",
     "ts-jest": "^26.2.0",
@@ -54,5 +55,10 @@
     "dotenv": "^8.2.0",
     "lodash": "^4.17.20",
     "moment": "^2.27.0"
+  },
+  "jest": {
+    "setupFiles": [
+      "jest-date-mock"
+    ]
   }
 }
