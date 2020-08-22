@@ -1,6 +1,6 @@
 {
-  "name": "hello-world",
-  "version": "0.1.0",
+  "name": "video-mre",
+  "version": "0.0.1",
   "private": true,
   "description": "",
   "main": "built/server.js",
@@ -11,7 +11,8 @@
     "virtual reality",
     "vr",
     "altspacevr",
-    "sample",
+    "timeline",
+    "trigger",
     "node"
   ],
   "engines": {
@@ -19,7 +20,7 @@
     "npm": ">=6.4.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "clean": "tsc --build --clean",
     "build": "tsc --build",
     "build-only": "tsc --build",
@@ -28,11 +29,20 @@
     "debug": "nodemon --inspect src/server.ts"
   },
   "devDependencies": {
+    "@babel/core": "^7.11.4",
+    "@babel/preset-env": "^7.11.0",
+    "@babel/preset-typescript": "^7.10.4",
+    "@types/jest": "^26.0.10",
+    "@types/lodash": "^4.14.159",
+    "@types/moment": "^2.13.0",
     "@typescript-eslint/eslint-plugin": "^3.9.0",
     "@typescript-eslint/parser": "^3.9.0",
+    "babel-jest": "^26.3.0",
     "eslint": "^7.6.0",
+    "jest": "^26.4.2",
     "minimist": "^1.2.5",
     "nodemon": "^2.0.4",
+    "ts-jest": "^26.2.0",
     "ts-node": "^8.10.2",
     "ts-node-dev": "^1.0.0-pre.57",
     "typescript": "^3.9.7"
@@ -41,6 +51,8 @@
     "@microsoft/mixed-reality-extension-sdk": "^0.20.0",
     "@types/dotenv": "^8.2.0",
     "@types/node": "^14.0.27",
-    "dotenv": "^8.2.0"
+    "dotenv": "^8.2.0",
+    "lodash": "^4.17.20",
+    "moment": "^2.27.0"
   }
 }

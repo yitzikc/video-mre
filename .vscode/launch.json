@@ -5,12 +5,21 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "npm",
+            "script": "build",
+            "path": "${workspaceFolder}"
+        },
+        {
             "type": "node",
-            "request": "attach",
-            "name": "Node: Nodemon",
-            "processId": "${command:PickProcess}",
-            "restart": true,
-            "protocol": "inspector"
+            "request": "launch",
+            "name": "Launch Program",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/built/server.js",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js"
+            ]
         }
     ]
 }
