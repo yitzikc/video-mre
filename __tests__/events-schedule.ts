@@ -13,6 +13,8 @@ test("All events passed", () => {
     const events = [
         { startTime: 100000000 },
         { startTime: 300000000 },
+        { startTime: "1990-10-11T10:11:12Z"},
+        { startTime: "1995-10-11T11:11:30+02"},
         { startTime: 990000000 }
     ];
     let es = new ScheduledEventTimeline(events, callback);

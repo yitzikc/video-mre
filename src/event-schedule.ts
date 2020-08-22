@@ -1,15 +1,21 @@
 import { findIndex } from 'lodash';
+const moment = require('moment');
 
 export interface ScheduledEvent {
-	startTime: number;
+	startTime: number | string;
 }
 
 export class ScheduledEventTimeline {
 	private sortedEvents: ScheduledEvent[];
 
 	constructor(events: ScheduledEvent[], private onEventStart: (e: ScheduledEvent) => any) {
-		const eventCompare = (a: ScheduledEvent, b: ScheduledEvent) => { return b.startTime - a.startTime; };
-		this.sortedEvents = events.sort(eventCompare);
+		const eventCompare = (a: ScheduledEvent, b: ScheduledEvent) => {
+			return this.getStartTimestamp(b) - this.getStartTimestamp(a);
+		};
+		const normalizeStartTime = (e: ScheduledEvent) => {
+			return Object.assign({}, e, { startTime: this.getStartTimestamp(e) });
+		};
+		this.sortedEvents = events.map(normalizeStartTime).sort(eventCompare);
 
 		const now = Date.now();
 		const startIndex: number = findIndex(
@@ -19,7 +25,7 @@ export class ScheduledEventTimeline {
 		if (startIndex >= 0) {
 			setTimeout(() => {
 				this.runAndScheduleNext(startIndex)
-			}, this.sortedEvents[startIndex].startTime - now);
+			}, this.getStartTimestamp(this.sortedEvents[startIndex]) - now);
 		}
 
 		// TODO: If all some or all events are overdue log
@@ -34,8 +40,17 @@ export class ScheduledEventTimeline {
 			if (startIdx + 1 < this.sortedEvents.length) {
 				setTimeout(() =>{ 
 					this.runAndScheduleNext(startIdx + 1)
-				}, this.sortedEvents[startIdx + 1].startTime - Date.now())
+				}, this.getStartTimestamp(this.sortedEvents[startIdx + 1]) - Date.now())
 			}
+		}
+	}
+
+	private getStartTimestamp = (e: ScheduledEvent): number => {
+		if (typeof e.startTime === "number") {
+			return e.startTime;
+		}
+		else {
+			return moment(e.startTime, moment.ISO_8601).valueOf();
 		}
 	}
 }
