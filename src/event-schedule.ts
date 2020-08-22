@@ -10,7 +10,7 @@ export class ScheduledEventTimeline {
 
 	constructor(events: ScheduledEvent[], private onEventStart: (e: ScheduledEvent) => any) {
 		const eventCompare = (a: ScheduledEvent, b: ScheduledEvent) => {
-			return this.getStartTimestamp(b) - this.getStartTimestamp(a);
+			return this.getStartTimestamp(a) - this.getStartTimestamp(b);
 		};
 		const normalizeStartTime = (e: ScheduledEvent) => {
 			return Object.assign({}, e, { startTime: this.getStartTimestamp(e) });
@@ -20,7 +20,7 @@ export class ScheduledEventTimeline {
 		const now = Date.now();
 		const startIndex: number = findIndex(
 			this.sortedEvents,
-			(e: ScheduledEvent) => { return e.startTime > now; });
+			(e: ScheduledEvent) => { return this.getStartTimestamp(e) > now; });
 
 		if (startIndex >= 0) {
 			setTimeout(() => {
