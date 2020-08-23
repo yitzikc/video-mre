@@ -124,3 +124,49 @@ test("Some events passed", () => {
     expect(callback).toHaveBeenCalledTimes(4);
     return;
 })
+
+test("Event Start End", () => {
+    const callback = jest.fn();
+    advanceTo(Date.UTC(2020, 7, 20, 10, 30, 0));
+
+    const events = [
+        { startTime: "2020-08-20T10:00:00Z" },
+        { startTime: "2020-08-20T14:00:00Z", endTime: null },
+        { startTime: "2020-08-19T23:00:00Z", endTime: "2020-08-20T01:00:00Z" },
+        { startTime: "2020-08-20T11:00:00Z", endTime: "2020-08-20T12:30:00Z" },
+    ];
+
+    const second = 1000;
+    const hour = 60 * 60 * second;
+
+    let es = new ScheduledEventTimeline(events, callback);
+    expect(callback).toHaveBeenCalledTimes(2);
+    expect(callback.mock.calls[0][0]).toEqual("past");
+    expect(callback.mock.calls[0][1].startTime).toEqual(Date.UTC(2020, 7, 19, 23, 0, 0));
+    expect(callback.mock.calls[1][0]).toEqual("past");
+    expect(callback.mock.calls[1][1].startTime).toEqual(Date.now() - hour / 2);
+
+    advanceBy(0.5 * hour + 30 * second);
+    jest.advanceTimersByTime(0.5 * hour + 10 * second);
+    expect(callback).toHaveBeenCalledTimes(3);
+    expect(callback.mock.calls[2][0]).toEqual("start");
+    expect(callback.mock.calls[2][1].startTime).toEqual(Date.now() - 30 * second);
+
+    // Make sure the event duration wasn't affected by starting 30 seconds later than scheduled.
+    advanceBy(1.5 * hour - 30 * second);
+    jest.advanceTimersByTime(1.5 * hour - 30 * second);
+    expect(callback).toHaveBeenCalledTimes(3);
+    advanceBy(30 * second);
+    jest.advanceTimersByTime(30 * second);
+    expect(callback).toHaveBeenCalledTimes(4);
+    expect(callback.mock.calls[3][0]).toEqual("end");
+    expect(callback.mock.calls[3][1].endTime).toEqual("2020-08-20T12:30:00Z");
+
+    // Ensure the next event starts on time
+    advanceBy(1.5 * hour - 30 * second);
+    jest.advanceTimersByTime(1.5 * hour - 30 * second);
+    expect(callback).toHaveBeenCalledTimes(5);
+    expect(callback.mock.calls[4][0]).toEqual("start");
+    expect(callback.mock.calls[4][1].startTime).toEqual(Date.now());
+    return;
+});
