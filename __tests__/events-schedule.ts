@@ -168,5 +168,9 @@ test("Event Start End", () => {
     expect(callback).toHaveBeenCalledTimes(5);
     expect(callback.mock.calls[4][0]).toEqual("start");
     expect(callback.mock.calls[4][1].startTime).toEqual(Date.now());
+
+    // Ensure that setting the end time to null suppresses the 'end' event
+    jest.runAllTimers();
+    expect(callback).toHaveBeenCalledTimes(5);
     return;
 });
