@@ -48,10 +48,9 @@ export class ScheduledEventTimeline {
 	private runAndScheduleNext = (startIdx: number) => {
 		try { 
 			this.onEvent("start", this.sortedEvents[startIdx]);
-			const endTime = this.sortedEvents[startIdx].endTime;
+			const endTime = ScheduledEventTimeline.getEndTimestamp(this.sortedEvents[startIdx]);
 			if (endTime) {
-				const startTime = ScheduledEventTimeline.getStartTimestamp(this.sortedEvents[startIdx]);
-				const eventDuration = ScheduledEventTimeline.parseTimestamp(endTime) - startTime;
+				const eventDuration = endTime - ScheduledEventTimeline.getStartTimestamp(this.sortedEvents[startIdx]);
 				if (eventDuration > 0) {
 					setTimeout(() => {
 						this.onEvent("end", this.sortedEvents[startIdx]);
@@ -70,9 +69,13 @@ export class ScheduledEventTimeline {
 		}
 	}
 
-	private static parseTimestamp = (ts: number | string): number => {
+	private static parseTimestamp = (ts: number | string, baselineTime?: number): number => {
 		if (typeof ts === "number") {
 			return ts;
+		}
+		else if (ts[0] === "+") {
+			const baselineMoment = (baselineTime === undefined) ? moment() : moment(baselineTime);
+			return baselineMoment.add(ts.slice(1), "LTS").valueOf();
 		}
 		else {
 			return moment(ts, moment.ISO_8601).valueOf();
@@ -81,6 +84,14 @@ export class ScheduledEventTimeline {
 
 	private static getStartTimestamp = (e: ScheduledEvent): number => {
 		return ScheduledEventTimeline.parseTimestamp(e.startTime);
+	}
+
+	private static getEndTimestamp = (e: ScheduledEvent): number | undefined => {
+		if (! e.endTime) {
+			return undefined;
+		}
+		const startTime = ScheduledEventTimeline.getStartTimestamp(e)
+		return ScheduledEventTimeline.parseTimestamp(e.endTime, startTime)
 	}
 
 	private notifyPastEvents = (events: ScheduledEvent[]) => {

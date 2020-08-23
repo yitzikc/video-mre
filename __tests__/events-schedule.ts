@@ -174,3 +174,61 @@ test("Event Start End", () => {
     expect(callback).toHaveBeenCalledTimes(5);
     return;
 });
+
+test("Timestamp parsing and sorting", () => {
+    const callback = jest.fn();
+    advanceTo(Date.UTC(2020, 7, 20, 10, 30, 0));
+
+    const events = [
+        { startTime: "2020-08-20T12:00:00Z" },
+        { startTime: "+00:30:00", endTime: "+00:45:00" },
+        { startTime: "2020-08-20T19:00:00+01" },
+        { startTime: "2020-08-20T09:00:00-04", endTime: "+02:30" },
+    ];
+
+    const second = 1000;
+    const hour = 60 * 60 * second;
+    let es = new ScheduledEventTimeline(events, callback);
+
+    advanceBy(0.5 * hour);
+    jest.advanceTimersByTime(0.5 * hour);
+    expect(callback).toHaveBeenCalledTimes(1);
+    expect(callback.mock.calls[0][0]).toEqual("start");
+    expect(callback.mock.calls[0][1].userStartTimeSpec).toEqual("+00:30:00");
+    expect(callback.mock.calls[0][1].endTime).toEqual("+00:45:00");
+    expect(callback.mock.calls[0][1].startTime).toEqual(Date.now());
+    advanceBy(0.75 * hour);
+    jest.advanceTimersByTime(0.75 * hour);
+    expect(callback).toHaveBeenCalledTimes(2);
+    expect(callback.mock.calls[1][0]).toEqual("end");
+    expect(callback.mock.calls[1][1].endTime).toEqual("+00:45:00");
+    expect(callback.mock.calls[1][1]).toEqual(callback.mock.calls[0][1]);
+
+    advanceBy(0.25 * hour);
+    jest.advanceTimersByTime(0.25 * hour);
+    expect(callback).toHaveBeenCalledTimes(3);
+    expect(callback.mock.calls[2][1].userStartTimeSpec).toEqual("2020-08-20T12:00:00Z");
+    expect(callback.mock.calls[2][1].startTime).toEqual(Date.now());
+    expect(callback.mock.calls[2][0]).toEqual("start");
+
+    advanceBy(hour);
+    jest.advanceTimersByTime(hour);
+    expect(callback).toHaveBeenCalledTimes(4);
+    expect(callback.mock.calls[3][1].userStartTimeSpec).toEqual("2020-08-20T09:00:00-04");
+    expect(callback.mock.calls[3][1].startTime).toEqual(Date.now());
+    expect(callback.mock.calls[3][0]).toEqual("start");
+    advanceBy(2.5 * hour);
+    jest.advanceTimersByTime(2.5 * hour);
+    expect(callback).toHaveBeenCalledTimes(5);
+    expect(callback.mock.calls[4][0]).toEqual("end");
+    expect(callback.mock.calls[4][1].endTime).toEqual("+02:30");
+    expect(callback.mock.calls[4][1]).toEqual(callback.mock.calls[3][1]);
+
+    advanceBy(2.5 * hour);
+    jest.advanceTimersByTime(2.5 * hour);
+    expect(callback).toHaveBeenCalledTimes(6);
+    expect(callback.mock.calls[5][1].userStartTimeSpec).toEqual("2020-08-20T19:00:00+01");
+    expect(callback.mock.calls[5][1].startTime).toEqual(Date.now());
+    expect(callback.mock.calls[5][0]).toEqual("start");
+    return;
+});
