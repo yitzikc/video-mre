@@ -6,6 +6,7 @@ jest.useFakeTimers("legacy");
 test("empty event schedule", () => {
     const callback = jest.fn();
     let es = new ScheduledEventTimeline([], callback);
+    es.start();
     jest.runAllTimers();
     expect(callback).not.toBeCalled();
 } );
@@ -20,6 +21,7 @@ test("All events passed", () => {
         { startTime: 990000000 }
     ];
     let es = new ScheduledEventTimeline(events, callback);
+    es.start();
     jest.runAllTimers();
     expect(callback).toHaveBeenCalledTimes(events.length);
 
@@ -52,6 +54,7 @@ test("All events still due", () => {
     const hour = 60 * 60 * second;
 
     let es = new ScheduledEventTimeline(events, callback);
+    es.start();
     jest.advanceTimersByTime(hour - second);
     expect(callback).not.toBeCalled();
 
@@ -101,6 +104,12 @@ test("Some events passed", () => {
     const hour = 60 * 60 * second;
 
     let es = new ScheduledEventTimeline(events, callback);
+
+    // Ensure no callbacks are made before we call start
+    jest.runAllTimers();
+    expect(callback).not.toBeCalled();
+
+    es.start();
     expect(callback).toHaveBeenCalledTimes(2);
     expect(callback.mock.calls[0][0]).toEqual("past");
     expect(callback.mock.calls[0][1].startTime).toEqual(Date.UTC(2020, 7, 19, 23, 0, 0));
@@ -140,6 +149,7 @@ test("Event Start End", () => {
     const hour = 60 * 60 * second;
 
     let es = new ScheduledEventTimeline(events, callback);
+    es.start();
     expect(callback).toHaveBeenCalledTimes(2);
     expect(callback.mock.calls[0][0]).toEqual("past");
     expect(callback.mock.calls[0][1].startTime).toEqual(Date.UTC(2020, 7, 19, 23, 0, 0));
@@ -189,6 +199,7 @@ test("Timestamp parsing and sorting", () => {
     const second = 1000;
     const hour = 60 * 60 * second;
     let es = new ScheduledEventTimeline(events, callback);
+    es.start();
 
     advanceBy(0.5 * hour);
     jest.advanceTimersByTime(0.5 * hour);

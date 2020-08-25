@@ -6,12 +6,11 @@ export interface ScheduledEvent {
 	endTime?: number | string;
 }
 
-type EventState = "start" | "inProgress" | "end" | "past"
-type EventCallback = (state: EventState, event: ScheduledEvent) => any
+export type EventState = "start" | "inProgress" | "end" | "past"
+export type EventCallback = (state: EventState, event: ScheduledEvent) => any
 
 export class ScheduledEventTimeline {
 	private sortedEvents: ScheduledEvent[];
-	private timeLineStartTime: number
 
 	constructor(events: ScheduledEvent[], private onEvent: EventCallback) {
 		const eventCompare = (a: ScheduledEvent, b: ScheduledEvent) => {
@@ -24,18 +23,21 @@ export class ScheduledEventTimeline {
 			});
 		};
 		this.sortedEvents = events.map(normalizeStartTime).sort(eventCompare);
-		this.timeLineStartTime = Date.now();
+	}
+
+	public start = (): void => {
+		const timeLineStartTime = Date.now();
 
 		const startIndex: number = findIndex(
 			this.sortedEvents,
 			(e: ScheduledEvent) => {
-				return ScheduledEventTimeline.getStartTimestamp(e) > this.timeLineStartTime;
+				return ScheduledEventTimeline.getStartTimestamp(e) > timeLineStartTime;
 			});
 
 		if (startIndex >= 0) {
 			setTimeout(() => {
 				this.runAndScheduleNext(startIndex)
-			}, ScheduledEventTimeline.getStartTimestamp(this.sortedEvents[startIndex]) - this.timeLineStartTime);
+			}, ScheduledEventTimeline.getStartTimestamp(this.sortedEvents[startIndex]) - timeLineStartTime);
 			this.notifyPastEvents(this.sortedEvents.slice(0, startIndex));
 		}
 		else {
