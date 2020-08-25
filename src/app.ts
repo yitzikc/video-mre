@@ -39,11 +39,10 @@ export default class HelloWorld {
 		});
 
 		const mediaSchedule = await this.loadMediaSchedule();
-		this.timeLine = new ScheduledMediaPlayer(this.assets, mediaSchedule);
+		this.timeLine = new ScheduledMediaPlayer(this.assets, mediaSchedule.mediaSchedule);
 		this.timeLine.start(this.curve);
 	}
 
-	// Stub implementation. Replace with actual implementation
 	private async loadMediaSchedule() {
 		const schedule = await fetch(this.mediaScheduleUrl).then(res => res.json());
 		return schedule;
