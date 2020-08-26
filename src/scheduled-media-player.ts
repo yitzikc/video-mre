@@ -56,5 +56,14 @@ export class ScheduledMediaPlayer {
     	this.playingVideo.stop()
     	this.playingVideo = new PlayingMedia(
     		this.playingActor!.startVideoStream(video.id, args), args);
+    	const videoInfo = `video ${video.id} from URI ${args.uri}`
+    	video.created.then(
+    		() => {
+    			log.info("app", "Successfully created %s", videoInfo);
+    		},
+    		(reason: any) => {
+    			log.error("app", "Failed to create %s: %s", videoInfo, JSON.stringify(reason));
+    		}
+    	);
     };
 }
