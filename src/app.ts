@@ -9,6 +9,7 @@ import fetch from 'node-fetch';
 import * as MRE from '@microsoft/mixed-reality-extension-sdk';
 import { ScheduledMediaPlayer } from './scheduled-media-player';
 import { getParameterLastValue } from './parameter-set-util';
+import { log } from '@microsoft/mixed-reality-extension-sdk';
 
 /**
  * The main class of this app. All the logic goes here.
@@ -21,6 +22,7 @@ export default class HelloWorld {
 	private timeLine: ScheduledMediaPlayer;
 
 	constructor(private context: MRE.Context, private params: MRE.ParameterSet, private baseUrl: string) {
+		log.enable("app", "info");
 		this.context.onStarted(() => this.started());
 		this.assets = new MRE.AssetContainer(this.context);
 		this.timeLine = new ScheduledMediaPlayer(this.assets, []);
