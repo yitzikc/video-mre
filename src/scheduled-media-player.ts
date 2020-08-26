@@ -1,7 +1,7 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
 // A video player which which plays on a schedule
 import {
-	SetMediaStateOptions, VideoStreamLike, AssetContainer, Actor
+	SetMediaStateOptions, VideoStreamLike, AssetContainer, Actor, log
 } from '@microsoft/mixed-reality-extension-sdk';
 
 import { PlayingMedia } from './playing-media';
@@ -26,13 +26,13 @@ export class ScheduledMediaPlayer {
     }
 
     protected handleScheduleEvent = (state: EventState, event: ScheduledEvent) : void => {
-    	console.log("app", "Called handler with state", state, JSON.stringify(event));
+    	log.info("app", "Called handler with state", state, JSON.stringify(event));
     	switch (state) {
     		case "start":
     			this.startPlay(event);
     			break;
     		case "end":
-    			console.log("app", "Stopping video playback");
+    			log.info("app", "Stopping video playback");
     			this.playingVideo.stop();
     			break;
     		default:
