@@ -17,6 +17,7 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/built/server.js",
+            "outputCapture": "std",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]
