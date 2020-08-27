@@ -45,14 +45,13 @@ export class ScheduledMediaPlayer {
 
     	// FIXME: This should be guaranteed at the type definition level.
     	if (! args.uri) {
-    		console.log("app", "Skipping play since URI is missing", args.uri);
+    		log.info("app", "Skipping play since URI is missing", args.uri);
     		return;
     	}
 
-    	console.log("app", "Starting to play", args.uri, "for/until", args.endTime);
+    	log.info("app", "Starting to play", args.uri, "for/until", args.endTime);
     	// TODO: Look up URIs in the assets collection before creating.
     	const video = this.mediaAssets.createVideoStream(args.uri, { uri: args.uri });
-    	console.log("Created video", video.id, "from URL", args.uri);
     	this.playingVideo.stop()
     	this.playingVideo = new PlayingMedia(
     		this.playingActor!.startVideoStream(video.id, args), args);
