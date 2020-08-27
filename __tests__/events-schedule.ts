@@ -16,7 +16,7 @@ test("All events passed", () => {
     const events = [
         { startTime: 100000000 },
         { startTime: 300000000 },
-        { startTime: "1990-10-11T10:11:12Z"},
+        { startTime: "1990-10-11T10:11:12Z", endTime: "+10:00"},
         { startTime: "1990-10-11T11:11:30+02"},
         { startTime: 990000000 }
     ];
@@ -113,7 +113,7 @@ test("Some events passed", () => {
     expect(callback).toHaveBeenCalledTimes(2);
     expect(callback.mock.calls[0][0]).toEqual("past");
     expect(callback.mock.calls[0][1].startTime).toEqual(Date.UTC(2020, 7, 19, 23, 0, 0));
-    expect(callback.mock.calls[1][0]).toEqual("past");
+    expect(callback.mock.calls[1][0]).toEqual("inProgress");
     expect(callback.mock.calls[1][1].startTime).toEqual(Date.now() - hour / 2);
 
     advanceBy(0.5 * hour);
@@ -153,7 +153,7 @@ test("Event Start End", () => {
     expect(callback).toHaveBeenCalledTimes(2);
     expect(callback.mock.calls[0][0]).toEqual("past");
     expect(callback.mock.calls[0][1].startTime).toEqual(Date.UTC(2020, 7, 19, 23, 0, 0));
-    expect(callback.mock.calls[1][0]).toEqual("past");
+    expect(callback.mock.calls[1][0]).toEqual("inProgress");
     expect(callback.mock.calls[1][1].startTime).toEqual(Date.now() - hour / 2);
 
     advanceBy(0.5 * hour + 30 * second);

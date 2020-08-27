@@ -97,9 +97,31 @@ export class ScheduledEventTimeline {
 	}
 
 	private notifyPastEvents = (events: ScheduledEvent[]) => {
+		if (events.length === 0) {
+			return;
+		}
+
+		let numEventsInProgress = 0;
+
 		// FIXME: Catch and log exceptions
-		events.forEach((e: ScheduledEvent) => { 
+		
+		events.slice(-1).forEach(event => {
+			// TODO: Detect cases where multiple events whose start time
+			// has passed are still in progress.
+			const lastMissedEndTime = ScheduledEventTimeline.getEndTimestamp(event)
+			if (! lastMissedEndTime || (lastMissedEndTime > Date.now())) {
+				numEventsInProgress++;
+			}
+		});
+
+		events.slice(0, events.length - numEventsInProgress).forEach((e: ScheduledEvent) => { 
 			this.onEvent("past", e);
-		})
+		});
+
+		events.slice(events.length - numEventsInProgress).forEach((e: ScheduledEvent) => { 
+			this.onEvent("inProgress", e);
+		});
+
+		return;
 	}
 }
