@@ -36,7 +36,6 @@ test("All events passed", () => {
     ];
     callback.mock.calls.forEach( (args, i) => {
         expect(args[0]).toEqual("past");
-        console.log(args[1].startTime, args[1].userStartTimeSpec);
         expect(args[1].startTime).toEqual(expectedStartTimes[i]);
     } );
 })
