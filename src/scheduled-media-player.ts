@@ -3,6 +3,7 @@
 import {
 	SetMediaStateOptions, VideoStreamLike, AssetContainer, Actor, log
 } from '@microsoft/mixed-reality-extension-sdk';
+import fetch from 'node-fetch'; 
 
 import { PlayingMedia } from './playing-media';
 import { ScheduledEventTimeline, ScheduledEvent, EventState } from './event-schedule';
@@ -13,6 +14,7 @@ export class ScheduledMediaPlayer {
     private playingVideo: PlayingMedia;
     private scheduledEvents?: ScheduledEventTimeline
     private playingActor?: Actor = null;
+	private MediaAccessCheckTimer?: NodeJS.Timeout = null;
 
     constructor(private mediaAssets: AssetContainer, private mediaSchedule: ScheduledMedia[]) {        
     	this.playingVideo = new PlayingMedia();       
@@ -60,6 +62,23 @@ export class ScheduledMediaPlayer {
     	video.created.then(
     		() => {
     			log.info("app", "Successfully created %s", videoInfo);
+    			this.MediaAccessCheckTimer = setInterval((): void => {
+    				const urlToMonitor = (
+    					"http://ec2-18-133-161-211.eu-west-2.compute.amazonaws.com/hls/stream1/index.m3u8");
+    				fetch(urlToMonitor, { method: "HEAD"}).then(
+    					(res) => {
+    						if (! res.ok) {
+    							log.error("app", "Failed check for URL %s", urlToMonitor);
+    						}
+    						else {
+    							log.info("app", "Res OK!")
+    						}
+    					},
+    					(reason) => {
+    						log.error("app", "Fetch error %s: %s", urlToMonitor, JSON.stringify(reason));
+    					}
+    				)
+    			}, 5000);
     		},
     		(reason: any) => {
     			log.error("app", "Failed to create %s: %s", videoInfo, JSON.stringify(reason));
