@@ -9,6 +9,7 @@ import {
 	VideoStream,
 	AssetContainer,
 	Actor,
+	Guid,
 	log
 } from '@microsoft/mixed-reality-extension-sdk';
 import getVideoDuration from 'get-video-duration';
@@ -20,17 +21,21 @@ import { ScheduledEventTimeline, ScheduledEvent, EventState } from './event-sche
 export type ScheduledMedia = ScheduledEvent & SetMediaStateOptions & Partial<VideoStreamLike>;
 
 export class ScheduledMediaPlayer {
-    private playingVideo: PlayingMedia;
-    private scheduledEvents?: ScheduledEventTimeline
-    private playingActor?: Actor = null;
+	// A map of playing actor GUID to playing media object
+	private playingVideo: Map<Guid, PlayingMedia>;
+	private playingScreens: Map<Guid, Actor>;
+	private scheduledEvents?: ScheduledEventTimeline
+	private currentActiveVideo: VideoStream = null;
+	private currentActiveParameters: ScheduledMedia = null;
 
-    constructor(private mediaAssets: AssetContainer, private mediaSchedule: ScheduledMedia[]) {        
-    	this.playingVideo = new PlayingMedia();       
-    }
+	constructor(private mediaAssets: AssetContainer, private mediaSchedule: ScheduledMedia[]) {   
+    	this.playingVideo = new Map<Guid, PlayingMedia>();
+    	this.playingScreens = new Map<Guid, Actor>(); 
+	}
 
-    // Set the actor used for playing, and start the timeline
-    public start(playingActor: Actor): void {
-    	this.playingActor = playingActor;
+	// Set the actor used for playing, and start the timeline
+	public start(): void {
+    	//this.playingActor = playingActor;
     	this.scheduledEvents = new ScheduledEventTimeline(this.mediaSchedule, this.handleScheduleEvent);
     	this.scheduledEvents.start();
     	this.checkScheduledMedia(this.mediaSchedule).then(() => {
@@ -38,25 +43,47 @@ export class ScheduledMediaPlayer {
     	}).catch((error) => {
     		log.error("app", "Failed to check scheduled media", error);
     	})
-    }
+	}
+
+	public addScreen = (screen: Actor): void => {
+		this.playingScreens.set(screen.id, screen);
+		if (this.currentActiveVideo && this.currentActiveParameters) {
+			const adjustedArgs = this.adjustArgsForStartTime(this.currentActiveVideo, this.currentActiveParameters);
+			if (adjustedArgs) {
+				this.startPlayingForActor(screen, adjustedArgs);
+			}
+		}
+	}
+
+	public removeScreen = (screen: Actor): void => {
+		this.playingVideo.get(screen.id)?.stop();
+		this.playingVideo.delete(screen.id);
+		this.playingScreens.delete(screen.id);
+	}
 
     protected handleScheduleEvent = (state: EventState, event: ScheduledEvent) : void => {
     	log.info("app", "Called handler with state %s: %s", state, JSON.stringify(event));
     	switch (state) {
     		case "start":
+			case "inProgress":
     			this.startPlay(event);
     			break;
     		case "end":
-    			this.playingVideo.stop();
-    			break;
-    		case "inProgress":
-    			this.startBelatedPlay(event);
+    			this.stopPlay();
     			break;
     		default:
     			break;
 
     	}
     }
+
+	private stopPlay = () => {
+		this.playingVideo.forEach(pv => {
+    		pv.stop();
+		})
+		this.currentActiveVideo = null;
+		this.currentActiveParameters = null;
+	}
 
     private startPlay = (args: ScheduledMedia) => {
 
@@ -67,35 +94,51 @@ export class ScheduledMediaPlayer {
     	}
 
     	log.info("app", "Starting to play", args.uri, "for/until", args.endTime);
-		// TODO: Look up URIs in the assets collection before creating.
-    	this.playingVideo.stop()
 
-    	this.capVideoStartTime(args).then(
-    		(cappedArgs: ScheduledMedia) => {
-    			if (! cappedArgs.time || (cappedArgs.time === args.time)) {
-    				if (cappedArgs.time !== args.time) {
-    					log.info("app", "Start time for %s has been capped to %d", cappedArgs.uri, cappedArgs.time)
-    				}
-    				const video = this.mediaAssets.createVideoStream(args.uri, { uri: args.uri });
-    				this.playingVideo = new PlayingMedia(
-						this.playingActor!.startVideoStream(video.id, args), cappedArgs);
-    				return this.confirmVideoCreation(video);
-    			}
-    			else {
-    				log.info("app", "Skipping playback of video with delay %d > duration %d",
-    					args.time, cappedArgs.time);
-    			}
-    		},
-    		(reason) => {
-    			log.error("app", "Failed to start video %s: %s", args.uri, JSON.stringify(reason));
-    		});
+		this.stopPlay();
+		let video = this.mediaAssets.createVideoStream(args.uri, { uri: args.uri });
+		this.startPlayingVideo(video, args);
     }
 
-	private confirmVideoCreation = (video: VideoStream) => {
-		const videoInfo = `video ${video.id} from URI ${video.uri}`;
+    private async adjustDurationFromMedia(video: VideoStream) {
+    	if ((video.duration > 0) || !video.uri){
+    		return;
+    	}
+
+    	// If streaming, no point to try to estimate the duration.
+    	if (video.uri.includes(".m3u8")) {
+    		return;
+    	}
+
+		// FIXME: Parse the URL properly and look at the path compoment
+    	if (video.uri.includes(".webm") || video.uri.includes(".mp4")) {
+    		await getVideoDuration(video.uri).then(
+    			(duration) => {
+    				log.info("app", "Detected the duration of %s as %f seconds", video.uri, duration);
+    				video.copy({ videoStream: { duration: duration } });
+    			}
+    		).catch(
+    			(reason) => {
+    				log.warning("Failed to get duration of %s: %s", video.uri, JSON.stringify(reason));
+    			}
+    		);
+    	}
+    }
+
+	private startPlayingVideo = (video: VideoStream, args: ScheduledMedia) => {
+		const videoInfo = `video ${video.id.toString()} from URI ${video.uri}`;
     	video.created.then(
     		() => {
-    			log.info("app", "Successfully created %s with duration %f", videoInfo, video.duration);
+				this.adjustDurationFromMedia(video).then(() => {
+					log.info("app", "Successfully created %s with duration %f", videoInfo, video.duration);
+					const adjustedArgs = this.adjustArgsForStartTime(video, args);
+					if (adjustedArgs) {
+						this.currentActiveVideo = video;
+						this.currentActiveParameters = args;
+						this.playingScreens.forEach(
+							actor => this.startPlayingForActor(actor, adjustedArgs));
+					}
+				});
     		},
     		(reason: any) => {
     			log.error("app", "Failed to create %s: %s", videoInfo, JSON.stringify(reason));
@@ -103,36 +146,27 @@ export class ScheduledMediaPlayer {
     	);
 	}
 
-	private startBelatedPlay = (args: ScheduledMedia) => {
-		const intendedStartTime = +(args?.time || 0);
-		assert.equal(typeof args.startTime, "number");
-		const startDelay = args.looping ? 0 : (Date.now() - <number> args.startTime) / 1000;
-		log.info("app", "Starting playback at intended %d with %d seconds delay: %s",
-			intendedStartTime, startDelay, JSON.stringify(args));
+	private adjustArgsForStartTime = (video: VideoStream, args: ScheduledMedia): ScheduledMedia => {
+		let adjustedArgs = Object.assign({}, args);
+		if (! args.looping) {
+			const delayFromScheduledStart = (Date.now() - <number> args.startTime) / 1000;
+			Object.assign(adjustedArgs, {time: (args.time || 0) + delayFromScheduledStart});
+			if (video.duration && (adjustedArgs.time > video.duration)) {
+				log.info("app", "Skipping playback of video with delay %d > duration %d",
+					adjustedArgs.time, video.duration);
+				return null;
+			}
+		}
 
-		const scheduleAdjustedMedia = Object.assign({}, args, { time: intendedStartTime + startDelay });
-		return this.startPlay(scheduleAdjustedMedia);
+		return adjustedArgs;
 	}
 
-	private async capVideoStartTime(args: ScheduledMedia): Promise<ScheduledMedia> {
-		const specifiedTime = args.time;
-		if (! specifiedTime) {
-			return args;
-		}
-
-		let maxDuration = Number.MAX_VALUE;
-		if (args.uri.includes(".m3u8")) {
-			maxDuration = 0;
-		}
-		else if (args.uri.includes(".webm") || args.uri.includes(".mp4")) {
-			maxDuration = await getVideoDuration(args.uri).catch(
-				(reason) => {
-					log.warning("Failed to get duration of %s: %s", args.uri, JSON.stringify(reason));
-					return maxDuration;
-				}
-			);
-		}
-		return Object.assign({}, args, { time: Math.min(args.time, maxDuration) });
+	private startPlayingForActor = (
+		actor: Actor, adjustedArgs: ScheduledMedia
+	) => {
+		const playingMedia = new PlayingMedia(
+			actor.startVideoStream(this.currentActiveVideo.id, adjustedArgs), adjustedArgs);
+		this.playingVideo.set(actor.id, playingMedia);
 	}
 
 	private async checkScheduledMedia(schedule: ScheduledMedia[]) {
