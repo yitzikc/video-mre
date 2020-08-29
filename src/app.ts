@@ -28,9 +28,16 @@ export default class HelloWorld {
 	constructor(private context: MRE.Context, private params: MRE.ParameterSet, private baseUrl: string) {
 		log.enable("app", "info");
 		this.context.onStarted(() => this.started());
+		this.context.onUserJoined((user: MRE.User) => {
+			log.info("app", "User joined session %s: %s", context.sessionId, JSON.stringify(user.toJSON()));
+		});
+		this.context.onUserLeft((user: MRE.User) => {
+			log.info("app", "User left session %s: %s", context.sessionId, JSON.stringify(user.toJSON()));
+		});
 		this.assets = new MRE.AssetContainer(this.context);
 		this.timeLine = new ScheduledMediaPlayer(this.assets, []);
 		this.mediaScheduleUrl = getParameterLastValue(params, "ms");
+		log.info("Initializing session %s from JSON schedule %s", context.sessionId, this.mediaScheduleUrl);
 	}
 
 	/**

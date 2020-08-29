@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { WebHost } from '@microsoft/mixed-reality-extension-sdk';
+import { WebHost, Permissions } from '@microsoft/mixed-reality-extension-sdk';
 import dotenv from 'dotenv';
 import { resolve as resolvePath } from 'path';
 import App from './app';
@@ -20,7 +20,9 @@ dotenv.config();
 const server = new WebHost({
 	// baseUrl: 'http://<ngrok-id>.ngrok.io',
 	baseDir: resolvePath(__dirname, '../public'),
-	permissions: []
+	optionalPermissions: [
+		Permissions.UserTracking
+	]
 });
 
 // Handle new application sessions
