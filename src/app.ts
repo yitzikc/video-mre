@@ -7,9 +7,13 @@
 
 import fetch from 'node-fetch'; 
 import * as MRE from '@microsoft/mixed-reality-extension-sdk';
-import { ScheduledMediaPlayer } from './scheduled-media-player';
+import { ScheduledMediaPlayer, ScheduledMedia } from './scheduled-media-player';
 import { getParameterLastValue } from './parameter-set-util';
 import { log } from '@microsoft/mixed-reality-extension-sdk';
+
+export interface MediaSchedule {
+	mediaSchedule: ScheduledMedia[]
+}
 
 /**
  * The main class of this app. All the logic goes here.
@@ -46,7 +50,13 @@ export default class HelloWorld {
 	}
 
 	private async loadMediaSchedule() {
-		const schedule = await fetch(this.mediaScheduleUrl).then(res => res.json());
+		const schedule = await fetch(this.mediaScheduleUrl).then((res) => {
+			if (! res.ok) {
+				throw Error(`Request to fetch JSON config failed with status ${res.status}`);
+			}
+			return res.json() as Promise<MediaSchedule>;
+		});
+		
 		return schedule;
 	}
 }
