@@ -1,6 +1,7 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
 // A video player which which plays on a schedule
 const assert = require('assert').strict;
+import { URL } from 'url';
 
 import {
 	SetMediaStateOptions,
@@ -11,6 +12,7 @@ import {
 	log
 } from '@microsoft/mixed-reality-extension-sdk';
 import getVideoDuration from 'get-video-duration';
+import fetch from 'node-fetch'; 
 
 import { PlayingMedia } from './playing-media';
 import { ScheduledEventTimeline, ScheduledEvent, EventState } from './event-schedule';
@@ -31,6 +33,11 @@ export class ScheduledMediaPlayer {
     	this.playingActor = playingActor;
     	this.scheduledEvents = new ScheduledEventTimeline(this.mediaSchedule, this.handleScheduleEvent);
     	this.scheduledEvents.start();
+    	this.checkScheduledMedia(this.mediaSchedule).then(() => {
+    		log.info("app", "Finished checking scheduled media");
+    	}).catch((error) => {
+    		log.error("app", "Failed to check scheduled media", error);
+    	})
     }
 
     protected handleScheduleEvent = (state: EventState, event: ScheduledEvent) : void => {
@@ -126,5 +133,61 @@ export class ScheduledMediaPlayer {
 			);
 		}
 		return Object.assign({}, args, { time: Math.min(args.time, maxDuration) });
+	}
+
+	private async checkScheduledMedia(schedule: ScheduledMedia[]) {
+		const eventsWithNormalizedUrls = schedule.map(event =>
+			Object.assign({}, event, { uri: ScheduledMediaPlayer.normalizeMediaUrl(event.uri) })
+		);
+
+		for (const event of eventsWithNormalizedUrls) {
+			const actualUrl = await ScheduledMediaPlayer.resolveHttpRedirects(event.uri).catch(
+				(error) => {
+					log.error("app", "Failed to perform check on URL %s: %s", event.uri, error);
+				});
+			if (actualUrl) {
+				log.info("app", "Verified access to media for event at %s. URL: %s",
+					event.startTime, actualUrl);
+			}
+			// If we didn't get a valid URL, resolveHttpRedirects would have logged a warning
+		}
+	}
+
+	private static normalizeMediaUrl(url: string) {
+		const parsedUrl = new URL(url);
+		switch (parsedUrl.protocol.toLowerCase()) {
+			case "https:":
+			case "http:":
+				return url;
+
+			case "youtube:":
+				return `https://www.youtube.com/watch?v=${parsedUrl.hostname}`;
+
+			default:
+				throw new Error(`Unrecognized URL scheme ${parsedUrl.protocol}: ${url}`);
+		}
+
+	}
+
+	private static async resolveHttpRedirects (url: string): Promise<string> {
+		const actualUrl = await fetch(url, {
+			method: 'HEAD',
+			redirect: "follow"
+		}).then(
+			(rsp) => {
+				if (!rsp.ok) {
+					log.warning("app", "Request for the URL %s failed with status %d",
+						url, rsp.status);
+					return null;
+				}
+				if (rsp.url !== url) {
+					log.info("app", "URL redirect %s -> %s", url, rsp.url);
+				}
+				return rsp.url;
+			}, (reason) => {
+				log.warning("app", "Request for the URL %s failed", JSON.stringify(reason));
+			}
+		);
+		return actualUrl || null;
 	}
 }
