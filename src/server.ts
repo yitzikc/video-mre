@@ -22,7 +22,6 @@ const server = new WebHost({
 	baseDir: resolvePath(__dirname, '../public'),
 	permissions: [],
 	optionalPermissions: [
-		Permissions.UserTracking
 	]
 });
 
