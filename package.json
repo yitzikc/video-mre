@@ -52,7 +52,7 @@
     "typescript": "^3.9.7"
   },
   "dependencies": {
-    "@microsoft/mixed-reality-extension-sdk": "^0.20.0",
+    "@microsoft/mixed-reality-extension-sdk": "0.19.2",
     "dotenv": "^8.2.0",
     "get-video-duration": "^3.0.2",
     "lodash": "^4.17.20",
