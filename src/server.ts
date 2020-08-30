@@ -20,6 +20,7 @@ dotenv.config();
 const server = new WebHost({
 	// baseUrl: 'http://<ngrok-id>.ngrok.io',
 	baseDir: resolvePath(__dirname, '../public'),
+	permissions: [],
 	optionalPermissions: [
 		Permissions.UserTracking
 	]
