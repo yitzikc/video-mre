@@ -1,0 +1,28 @@
+{
+  "mediaSchedule": [
+	  {
+		"startTime": "+00:00:00",
+		"endTime": "+00:00:20",
+		"uri": "youtube://wHDVX2E8nLY",
+		"volume": 1
+	  },
+	  {
+		"startTime": "+00:00:30",
+		"uri": "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4?_=1",
+		"volume": 1
+	  },
+	  {
+		"startTime": "+00:00:45",
+		"uri": "https://bitmovin-a.akamaihd.net/content/playhouse-vr/m3u8s/105560.m3u8",
+		"endTime": "+00:02:10",
+		"comment": "A sample HLS stream",
+		"volume": 1
+	  },
+	  {
+		"startTime": "+00:03",
+		"endTime": "+00:00:20",
+		"uri": "youtube://ujHBcII19hk",
+		"volume": 1
+	  }
+	]
+}

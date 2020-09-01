@@ -35,7 +35,8 @@ export default class HelloWorld {
 		});
 		this.assets = new MRE.AssetContainer(this.context);
 		this.timeLine = new ScheduledMediaPlayer(this.assets, []);
-		this.mediaScheduleUrl = getParameterLastValue(params, "ms");
+		const demoScheduleUrl = `${this.baseUrl}relative_schedule_example.json`;
+		this.mediaScheduleUrl = getParameterLastValue(params, "ms", demoScheduleUrl);
 		log.info("Initializing session %s from JSON schedule %s", context.sessionId, this.mediaScheduleUrl);
 	}
 
