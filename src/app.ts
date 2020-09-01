@@ -20,7 +20,6 @@ export interface MediaSchedule {
  */
 export default class HelloWorld {
 	private curve: MRE.Actor = null;
-	private video: MRE.VideoStream = null;	// Remove
 	private assets: MRE.AssetContainer;
 	private mediaScheduleUrl: string;
 	private timeLine: ScheduledMediaPlayer;
