@@ -20,33 +20,23 @@
     "npm": ">=6.4.1"
   },
   "scripts": {
-    "test": "jest",
+    "test": "echo No tests defined && exit 1",
     "clean": "tsc --build --clean",
-    "build": "tsc --build",
+    "build": "tsc",
     "build-only": "tsc --build",
     "lint": "eslint --ext .ts src",
-    "start": "node .",
     "debug": "nodemon --inspect src/server.ts"
   },
   "devDependencies": {
-    "@babel/core": "^7.11.4",
-    "@babel/preset-env": "^7.11.0",
-    "@babel/preset-typescript": "^7.10.4",
     "@types/dotenv": "^8.2.0",
-    "@types/jest": "^26.0.10",
     "@types/lodash": "^4.14.159",
-    "@types/moment": "^2.13.0",
     "@types/node": "^14.0.27",
     "@types/node-fetch": "^2.5.7",
     "@typescript-eslint/eslint-plugin": "^3.9.0",
     "@typescript-eslint/parser": "^3.9.0",
-    "babel-jest": "^26.3.0",
     "eslint": "^7.6.0",
-    "jest": "^26.4.2",
-    "jest-date-mock": "^1.0.8",
     "minimist": "^1.2.5",
     "nodemon": "^2.0.4",
-    "ts-jest": "^26.2.0",
     "ts-node": "^8.10.2",
     "ts-node-dev": "^1.0.0-pre.57",
     "typescript": "^3.9.7"
@@ -57,11 +47,7 @@
     "get-video-duration": "^3.0.2",
     "lodash": "^4.17.20",
     "moment": "^2.27.0",
-    "node-fetch": "^2.6.0"
-  },
-  "jest": {
-    "setupFiles": [
-      "jest-date-mock"
-    ]
+    "node-fetch": "^2.6.0",
+    "scheduled-event-timeline": "^0.0.1"
   }
 }

@@ -13,9 +13,9 @@ import {
 } from '@microsoft/mixed-reality-extension-sdk';
 import getVideoDuration from 'get-video-duration';
 import fetch from 'node-fetch'; 
+import { ScheduledEventTimeline, ScheduledEvent, EventState } from 'scheduled-event-timeline';
 
 import { PlayingMedia } from './playing-media';
-import { ScheduledEventTimeline, ScheduledEvent, EventState } from './event-schedule';
 
 export type ScheduledMedia = ScheduledEvent & SetMediaStateOptions & Partial<VideoStreamLike>;
 
