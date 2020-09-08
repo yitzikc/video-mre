@@ -29,7 +29,6 @@
   },
   "devDependencies": {
     "@types/dotenv": "^8.2.0",
-    "@types/lodash": "^4.14.159",
     "@types/node": "^14.0.27",
     "@types/node-fetch": "^2.5.7",
     "@typescript-eslint/eslint-plugin": "^3.9.0",
@@ -45,8 +44,7 @@
     "@microsoft/mixed-reality-extension-sdk": "^0.20.0",
     "dotenv": "^8.2.0",
     "get-video-duration": "^3.0.2",
-    "lodash": "^4.17.20",
-    "moment": "^2.27.0",
+    "mixed-reality-extension-util": "^0.1.0",
     "node-fetch": "^2.6.0",
     "scheduled-event-timeline": "^0.0.1"
   }

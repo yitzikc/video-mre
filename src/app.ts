@@ -8,7 +8,7 @@
 import fetch from 'node-fetch'; 
 import * as MRE from '@microsoft/mixed-reality-extension-sdk';
 import { ScheduledMediaPlayer, ScheduledMedia } from './scheduled-media-player';
-import { getParameterLastValue } from './parameter-set-util';
+import { getParameterLastValue } from 'mixed-reality-extension-util';
 import { log } from '@microsoft/mixed-reality-extension-sdk';
 
 export interface MediaSchedule {
